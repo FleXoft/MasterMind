@@ -1,0 +1,670 @@
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   1
+C:\M851\app\MasterMi\build\state1.asm
+ADDR   CODE      LINE SOURCELINE
+                   2 
+                   3 ; ********************************************************************
+                   4 ; *
+                   5 ; * M851 WRISTAPP BUILDER
+                   6 ; * Timex Corporation 2002 All Rights Reserved
+                   7 ; * July 2002
+                   8 ; *
+                   9 ; * WristApp: MasterMind v: 1.0 (final)
+                  10 ; *
+                  11 ; ********************************************************************
+                  12 
+                  13 
+                  88 
+                  90 
+                  93 
+                  94      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  95      ;
+                  96      ; ADD WRISTAPP SOURCE FILE TO BE IN THE STATE CODE
+                  97      ;
+                  98      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  99 
+                 100     INCLUDE 'C:\M851\App\MasterMi\src\mmdef.asm'
+                   1 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                   2 ;
+                   3 ; File Name    : mmdef.asm
+                   4 ; Purpose      : MasterMind Application Default State Manager
+                   5 ;
+                   6 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                   7 ;;;;;;;;;;;;;DO NOT MODIFY THE FOLLOWING SUBROUTINE DEFINITION;;;;;;;;;;;;;;;;;
+                   8 
+                  12                 DEFINE  SUBROUTINE      "'mmdef'"
+                  13 
+                  14 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  15 
+                  16 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  17 ;
+                  18 ; Module Name : mmDefaultStateManager
+                  19 ; Description : MasterMind Application Default State Manager.
+                  20 ; Assumptions : Display is cleared on first time entry into the state.
+                  21 ; Input(s)    : CORECurrentEvent  - system event to be processed
+                  22 ;               COREEventArgument - event extra information
+                  23 ; Output(s)   : None
+                  24 ;
+                  25 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  26 
+                  28 
+00F35F            29 mmDefaultStateManager:
+                  30                 ; Set IYReg the address of the MasterMind ASD.
+00F35F BB06F1     31                 ld      IY, [CORECurrentASDAddress]
+                  32 
+                  33                 ; Load the event to be process to AReg.
+00F362 CED002F1   34                 ld      A, [CORECurrentEvent]
+                  35 
+                  36                 ; Check if state entry event.
+00F366 3231       37                 cp      A, #MM_STATEENTRY
+                  38                 jr      Z, mmDefaultStateStateEntryEvent
+00F368 E62A      +38 ;       jrS     Z, mmDefaultStateStateEntryEvent
+                  39 
+                  40                 ; Check if mode depress event.
+00F36A 3206       41                 cp      A, #MM_MODEDEPRESS
+                  42                 jr      Z, mmDefaultStateModeDepressEvent
+00F36C EEAC00    +42 ;       jrL     Z, mmDefaultStateModeDepressEvent
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   2
+
+ADDR   CODE      LINE SOURCELINE
+                  43 
+                  44                 ; Check if crown set event.
+00F36F 3202       45                 cp      A, #MM_CROWNSET
+                  46                 jr      Z, mmDefaultStatePulledCrownEvent
+00F371 EEAB00    +46 ;       jrL     Z, mmDefaultStatePulledCrownEvent
+                  47 
+                  48                 ; Check if start/split depress event.
+00F374 3208       49                 cp      A, #MM_STARTSPLITDEPRESS
+                  50                 jr      Z, mmDefaultStateStartSplitDepressEvent
+00F376 EEAC00    +50 ;       jrL     Z, mmDefaultStateStartSplitDepressEvent
+                  51 
+00F379 3210       52                 cp      A, #MM_CWPULSES
+                  53                 jr      Z, mmDefaultStateCWPulseEvent
+00F37B EEAD00    +53 ;       jrL     Z, mmDefaultStateCWPulseEvent
+                  54 
+00F37E 3211       55                 cp      A, #MM_CCWPULSES
+                  56                 jr      Z, mmDefaultStateCCWPulseEvent
+00F380 EEBD00    +56 ;       jrL     Z, mmDefaultStateCCWPulseEvent
+                  57 
+                  58                 ; Check if stop/reset depress event.
+00F383 3207       59                 cp      A, #MM_STOPRESETDEPRESS
+                  60                 jr      Z, mmDefaultStateStopResetDepressEvent
+00F385 EECC00    +60 ;       jrL     Z, mmDefaultStateStopResetDepressEvent
+                  61 
+                  62                 ; Check if stop/reset release event.
+00F388 3287       63                 cp      A, #MM_STOPRESETRELEASE
+                  64                 jr      Z, mmDefaultStateStopResetReleaseEvent
+00F38A EED600    +64 ;       jrL     Z, mmDefaultStateStopResetReleaseEvent
+                  65 
+                  66                 ; Check if timeout hi-res done event.
+00F38D 3221       67                 cp      A, #MM_TIMEOUTDONEHIGHRES
+                  68                 jr      Z, mmDefaultStateTimeoutHiResDoneEvent
+00F38F EED400    +68 ;       jrL     Z, mmDefaultStateTimeoutHiResDoneEvent
+                  69 
+                  70                 ;TODO: Add more events detection here
+                  71                 ;There are more events, add your own as needed
+                  72 
+00F392 F8         73                 ret
+                  74 
+                  75 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  76 
+                  77 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  78 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; EVENT HANDLERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  79 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  80 
+00F393            81 mmDefaultStateStateEntryEvent:
+                  82                 ;**************************************************************
+                  83                 ;         STATE ENTRY
+                  84                 ;**************************************************************
+                  85 
+                  86                 ; Help message how to start the game and reset the game
+00F393 CE4101     87                 ld        A, [IY + MMROUNDOFFSET]
+00F396 3200       88                 cp        A, #MMROUNDINIT
+                  89                 jr        NZ, mmdefaultstatestateentryeventnostartmsg
+00F398 E705      +89 ;       jrS     NZ, mmdefaultstatestateentryeventnostartmsg
+                  90 
+                  91                 ; Reset the game
+                  92                 car       mmDefaultStateResetGame
+00F39A F2DA00    +92 ;       carL    mmDefaultStateResetGame
+                  93 
+00F39D F8         94                 ret
+                  95 
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   3
+
+ADDR   CODE      LINE SOURCELINE
+00F39E            96 mmdefaultstatestateentryeventnostartmsg:
+                  97                 ; Enable pulse mode to change values.
+                  98                 CORE_ENABLE_PULSE_MODE
+                 +98 ; 
+                 +98 ;                 car    coreEnablePulseMode
+00F39E F238CA    +98 ; ;     carL    coreEnablePulseMode
+                 +98 ; 
+                 +98 ; 
+                  99 
+                 100                 ; did you win the game?
+                 101                 car       mmCommonRoundTableOffsetCalculator
+00F3A1 F0A9     +101 ;       carS    mmCommonRoundTableOffsetCalculator
+                 102                 ; IX
+                 103 
+00F3A3 CE4004    104                 ld        A, [IX + MMRESULT]
+00F3A6 322C      105                 cp        A, #MMRESULTWON
+                 106                 jr        NZ, mmdefaultstatestateentryeventnotyetevenwon
+00F3A8 E713     +106 ;       jrS     NZ, mmdefaultstatestateentryeventnotyetevenwon
+                 107 
+                 108                 ; print you won the game
+00F3AA C7F5F3    109                 ld        IY, #mmDefaultStateStateWonTheGameBannerMsg
+                 110                 LCD_DISP_BANNER_MSG
+                +110 ;                 
+                +110 ;                 car     lcdDispBannerMsg
+00F3AD F2319F   +110 ; ;     carL    lcdDispBannerMsg
+                +110 ; 
+                +110 ; 
+                 111 
+                 112                 ; disbale start/split switch
+                 113                 CORE_MASK_KEYS  (MMSWITCHMASK_STARTSPLIT)
+                +113 ; 
+00F3B0 CED1FDF0 +113 ;                 ld      B, [COREKeyMask]
+00F3B4 CEB0FB   +113 ;                 and     B, #@LOW(~((MMSWITCHMASK_STARTSPLIT)))
+00F3B7 CED5FDF0 +113 ;                 ld      [COREKeyMask], B
+                +113 ; 
+                 114 
+00F3BB F8        115                 ret
+                 116 
+00F3BC           117 mmdefaultstatestateentryeventnotyetevenwon:
+                 118                 ; lost the game?
+00F3BC CE4101    119                 ld      A, [IY + MMROUNDOFFSET]
+00F3BF 3209      120                 cp      A, #MMROUNDMAX
+                 121                 jr      NZ, mmdefaultstatestateentryeventnotyetlost
+00F3C1 E72F     +121 ;       jrS     NZ, mmdefaultstatestateentryeventnotyetlost
+                 122 
+                 123                 ; lost, so show it
+00F3C3 CE4104    124                 ld        A, [IY + MMBIGTABLEOFFSET + MMPOSITION1]
+00F3C6 CED455F5  125                 ld        [mmdefaultstateredisplayshow + MMPOSITION1], A
+00F3CA CE4105    126                 ld        A, [IY + MMBIGTABLEOFFSET + MMPOSITION2]
+00F3CD CED456F5  127                 ld        [mmdefaultstateredisplayshow + MMPOSITION2], A
+00F3D1 CE4106    128                 ld        A, [IY + MMBIGTABLEOFFSET + MMPOSITION3]
+00F3D4 CED457F5  129                 ld        [mmdefaultstateredisplayshow + MMPOSITION3], A
+00F3D8 CE4107    130                 ld        A, [IY + MMBIGTABLEOFFSET + MMPOSITION4]
+00F3DB CED458F5  131                 ld        [mmdefaultstateredisplayshow + MMPOSITION4], A
+                 132 
+                 133                 ; print you lost the game
+00F3DF C707F4    134                 ld        IY, #mmDefaultStateStateLostGameBannerMsg
+                 135                 LCD_DISP_BANNER_MSG
+                +135 ;                 
+                +135 ;                 car     lcdDispBannerMsg
+00F3E2 F2FC9E   +135 ; ;     carL    lcdDispBannerMsg
+                +135 ; 
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   4
+
+ADDR   CODE      LINE SOURCELINE
+                +135 ; 
+                 136 
+                 137                 ; disbale start/split switch
+                 138                 CORE_MASK_KEYS  (MMSWITCHMASK_STARTSPLIT)
+                +138 ; 
+00F3E5 CED1FDF0 +138 ;                 ld      B, [COREKeyMask]
+00F3E9 CEB0FB   +138 ;                 and     B, #@LOW(~((MMSWITCHMASK_STARTSPLIT)))
+00F3EC CED5FDF0 +138 ;                 ld      [COREKeyMask], B
+                +138 ; 
+                 139 
+00F3F0 F8        140                 ret
+                 141 
+00F3F1           142 mmdefaultstatestateentryeventnotyetlost:
+                 143                 car       mmDefaultStateRedisplay
+00F3F1 F2E500   +143 ;       carL    mmDefaultStateRedisplay
+                 144 
+00F3F4 F8        145                 ret
+                 146 
+00F3F5           147 mmDefaultStateStateWonTheGameBannerMsg:
+00F3F5 8423191F  148                 db        LCDBANNER_COL3, DM5_Y, DM5_O, DM5_U, DM5_SPACE, DM5_W, DM5_O, DM5_N
+       0A211918     
+00F3FD 851E120F  149                 db        LCDBANNER_COL4, DM5_T, DM5_H, DM5_E, DM5_SPACE, DM5_G, DM5_A, DM5_M, DM5_E
+       0A110B17     
+       0F           
+00F406 FF        150                 db        LCD_END_BANNER
+                 151 
+00F407           152 mmDefaultStateStateLostGameBannerMsg:
+00F407 8423191F  153                 db        LCDBANNER_COL3, DM5_Y, DM5_O, DM5_U, DM5_SPACE, DM5_L, DM5_O, DM5_S, DM5_T
+       0A16191D     
+       1E           
+00F410 851E120F  154                 db        LCDBANNER_COL4, DM5_T, DM5_H, DM5_E, DM5_SPACE, DM5_G, DM5_A, DM5_M, DM5_E
+       0A110B17     
+       0F           
+00F419 FF        155                 db        LCD_END_BANNER
+                 156 
+00F41A           157 mmDefaultStateModeDepressEvent:
+                 158                 ;**************************************************************
+                 159                 ;         MODE DEPRESS
+                 160                 ;**************************************************************
+                 161 
+                 162                 CORE_REQ_MODE_CHANGE_NEXT
+                +162 ;                 
+                +162 ;                 car     coreRequestModeChangeNext
+00F41A F2C2C8   +162 ; ;     carL    coreRequestModeChangeNext
+                +162 ;         
+                +162 ; 
+                 163 
+00F41D F8        164                 ret
+                 165 
+00F41E           166 mmDefaultStatePulledCrownEvent:
+                 167                 ;**************************************************************
+                 168                 ;         CROWN SET
+                 169                 ;**************************************************************
+                 170 
+00F41E B102      171                 ld      B, #MMSETBANNERSTATE
+                 172                 CORE_REQ_STATE_CHANGE
+                +172 ;                 
+                +172 ;                 car     coreRequestStateChange
+00F420 F2CAC8   +172 ; ;     carL    coreRequestStateChange
+                +172 ;         
+                +172 ; 
+                 173 
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   5
+
+ADDR   CODE      LINE SOURCELINE
+00F423 F8        174                 ret
+                 175 
+00F424           176 mmDefaultStateStartSplitDepressEvent:
+                 177                 ;**************************************************************
+                 178                 ;         START/SPLIT DEPRESS
+                 179                 ;**************************************************************
+                 180 
+00F424 B104      181                 ld      B, #MMEDITSTATE
+                 182                 CORE_REQ_STATE_CHANGE
+                +182 ;                 
+                +182 ;                 car     coreRequestStateChange
+00F426 F2C4C8   +182 ; ;     carL    coreRequestStateChange
+                +182 ;         
+                +182 ; 
+                 183 
+00F429 F8        184                 ret
+                 185 
+00F42A           186 mmDefaultStateCWPulseEvent:
+                 187                 ;**************************************************************
+                 188                 ;         CLOCKWISE CROWN ROTATION
+                 189                 ;**************************************************************
+                 190 
+00F42A CE4102    191                 ld        A, [IY + MMCURRENTPOSITIONOFFSET]
+00F42D CE4901    192                 ld        B, [IY + MMROUNDOFFSET]
+00F430 31        193                 cp        A, B
+                 194                 jr        Z, mmdefaultstatecwpulsemaxposition
+00F431 E604     +194 ;       jrS     Z, mmdefaultstatecwpulsemaxposition
+                 195 
+00F433 80        196                 inc       A
+                 197 
+                 198                 jr        mmdefaultstatecwpulsesetcursorposition
+00F434 F103     +198 ;       jrS     mmdefaultstatecwpulsesetcursorposition
+                 199 
+00F436           200 mmdefaultstatecwpulsemaxposition:
+00F436 B001      201                 ld        A, #MMCURRENTPOSITIONMIN
+                 202 
+00F438           203 mmdefaultstatecwpulsesetcursorposition:
+00F438 CE4502    204                 ld        [IY + MMCURRENTPOSITIONOFFSET], A
+                 205 
+                 206                 car       mmDefaultStateRedisplay
+00F43B F29B00   +206 ;       carL    mmDefaultStateRedisplay
+                 207 
+00F43E F8        208                 ret
+                 209 
+00F43F           210 mmDefaultStateCCWPulseEvent:
+                 211                 ;**************************************************************
+                 212                 ;         COUNTER CLOCKWISE CROWN ROTATION
+                 213                 ;**************************************************************
+                 214 
+00F43F CE4102    215                 ld        A, [IY + MMCURRENTPOSITIONOFFSET]
+00F442 3201      216                 cp        A, #MMCURRENTPOSITIONMIN
+                 217                 jr        Z, mmdefaultstateccwpulseminposition
+00F444 E604     +217 ;       jrS     Z, mmdefaultstateccwpulseminposition
+                 218 
+00F446 88        219                 dec       A
+                 220 
+                 221                 jr        mmdefaultstateccwpulsesetcursorposition
+00F447 F104     +221 ;       jrS     mmdefaultstateccwpulsesetcursorposition
+                 222 
+00F449           223 mmdefaultstateccwpulseminposition:
+00F449 CE4101    224                 ld        A, [IY + MMROUNDOFFSET]
+                 225 
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   6
+
+ADDR   CODE      LINE SOURCELINE
+00F44C           226 mmdefaultstateccwpulsesetcursorposition:
+00F44C CE4502    227                 ld        [IY + MMCURRENTPOSITIONOFFSET], A
+                 228 
+                 229                 car       mmDefaultStateRedisplay
+00F44F F28700   +229 ;       carL    mmDefaultStateRedisplay
+                 230 
+00F452 F8        231                 ret
+                 232 
+00F453           233 mmDefaultStateStopResetDepressEvent:
+                 234                 ;**************************************************************
+                 235                 ;         STOP/RESET DEPRESS
+                 236                 ;**************************************************************
+                 237 
+                 238                 ; Enable switch release
+                 239                 CORE_ENABLE_SWITCH_RELEASE
+                +239 ; 
+                +239 ; 
+                +239 ;                 car     coreEnableSwitchReleaseEvents
+00F453 F2E3C9   +239 ; ;     carL    coreEnableSwitchReleaseEvents
+                +239 ; 
+                +239 ; 
+                 240 
+                 241                 ; Request 2sec timeout.
+                 242                 CORE_REQ_TIMEOUT_HIRES MMHIRESTO_2SECONDS
+                +242 ;                 
+00F456 B110     +242 ;                 ld      B,  #MMHIRESTO_2SECONDS
+                +242 ;                 car    coreRequestTimeoutHiRes
+00F458 F2ABC8   +242 ; ;     carL    coreRequestTimeoutHiRes
+                +242 ; 
+                +242 ; 
+                 243 
+                 244                 LCD_CLR_DISPLAY
+                +244 ;                 
+                +244 ;                 car     lcdClearDisplay
+00F45B F2E1B0   +244 ; ;     carL    lcdClearDisplay
+                +244 ; 
+                +244 ; 
+                 245                 LCD_DISP_SMALL_DM_MSG_HOLD_TO_RESET
+                +245 ; 
+                +245 ;                 car     lcdDispSmDMMsg_HOLD_TO_RESET
+00F45E F2089F   +245 ; ;     carL    lcdDispSmDMMsg_HOLD_TO_RESET
+                +245 ; 
+                +245 ; 
+                 246 
+00F461 F8        247                 ret
+                 248 
+00F462           249 mmDefaultStateStopResetReleaseEvent:
+                 250                 ;**************************************************************
+                 251                 ;         STOP/RESET RELEASE
+                 252                 ;**************************************************************
+                 253 
+                 254                 car       mmDefaultStateRedisplay
+00F462 F075     +254 ;       carS    mmDefaultStateRedisplay
+                 255 
+00F464 F8        256                 ret
+                 257 
+00F465           258 mmDefaultStateTimeoutHiResDoneEvent:
+                 259                 ;**************************************************************
+                 260                 ;          TIMEOUT DONE HI-RES
+                 261                 ;**************************************************************
+                 262 
+                 263                 AUDSTART_SYSTEM_MELODY AUDSWBEEPMELODY, AUDNOMELODYDONEEVENT
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   7
+
+ADDR   CODE      LINE SOURCELINE
+                +263 ; 
+00F465 B000     +263 ;                 ld      A, #AUDSWBEEPMELODY
+00F467 B100     +263 ;                 ld      B, #AUDNOMELODYDONEEVENT
+                +263 ;                 car     audStartSysMelody
+00F469 F26E10   +263 ; ;     carL    audStartSysMelody
+                +263 ; 
+                +263 ;             
+                 264 
+                 265                 ; new game
+                 266                 ; increase the game counter
+00F46C CE413C    267                 ld     A, [IY + MMGAMENUMBER]
+00F46F 80        268                 inc    A
+00F470 CE453C    269                 ld     [IY + MMGAMENUMBER], A
+                 270 
+                 271                 ; Reset the game
+                 272                 car       mmDefaultStateResetGame
+00F473 F002     +272 ;       carS    mmDefaultStateResetGame
+                 273 
+00F475 F8        274                 ret
+                 275 
+                 276 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 277 
+                 278 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 279 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; SUBROUTINES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 280 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 281 
+00F476           282 mmDefaultStateResetGame:
+00F476 B000      283                 ld     A, #MMROUNDINIT
+00F478 CE4501    284                 ld     [IY + MMROUNDOFFSET], A
+                 285                 ;
+00F47B B001      286                 ld     A, #MMCURRENTPOSITIONINIT
+00F47D CE4502    287                 ld     [IY + MMCURRENTPOSITIONOFFSET], A
+                 288                 ;
+00F480 B000      289                 ld     A, #MMCURSORPOSITIONINIT
+00F482 CE4503    290                 ld     [IY + MMCURSORPOSITIONOFFSET], A
+                 291 
+                 292                 ; RND generation
+                 293                 car       mmDefaultStateRandomGenerator
+00F485 F043     +293 ;       carS    mmDefaultStateRandomGenerator
+00F487 CE4504    294                 ld        [IY + MMBIGTABLEOFFSET + MMPOSITION1], A
+                 295                 ;
+                 296                 car       mmDefaultStateRandomGenerator
+00F48A F03E     +296 ;       carS    mmDefaultStateRandomGenerator
+00F48C CE4505    297                 ld        [IY + MMBIGTABLEOFFSET + MMPOSITION2], A
+                 298                 ;
+                 299                 car       mmDefaultStateRandomGenerator
+00F48F F039     +299 ;       carS    mmDefaultStateRandomGenerator
+00F491 CE4506    300                 ld        [IY + MMBIGTABLEOFFSET + MMPOSITION3], A
+                 301                 ;
+                 302                 car       mmDefaultStateRandomGenerator
+00F494 F034     +302 ;       carS    mmDefaultStateRandomGenerator
+00F496 CE4507    303                 ld        [IY + MMBIGTABLEOFFSET + MMPOSITION4], A
+                 304 
+                 305                 LCD_CLR_DISPLAY
+                +305 ;                 
+                +305 ;                 car     lcdClearDisplay
+00F499 F2A3B0   +305 ; ;     carL    lcdClearDisplay
+                +305 ; 
+                +305 ; 
+                 306                 ;
+00F49C C7BAF4    307                 ld        IY, #mmdefaultstatesegmsg
+                 308                 LCD_DISP_SEG_LINE_MSG
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   8
+
+ADDR   CODE      LINE SOURCELINE
+                +308 ;                 
+                +308 ;                 car     lcdDispSegLineMsg
+00F49F F2FAA7   +308 ; ;     carL    lcdDispSegLineMsg
+                +308 ; 
+                +308 ; 
+                 309                 ;
+00F4A2 C7C0F4    310                 ld        IY, #mmdefaultstatebannermsg
+                 311                 LCD_DISP_BANNER_MSG
+                +311 ;                 
+                +311 ;                 car     lcdDispBannerMsg
+00F4A5 F2399E   +311 ; ;     carL    lcdDispBannerMsg
+                +311 ; 
+                +311 ; 
+                 312 
+                 313                 CORE_ALLOW_ALL_KEYMASK
+                +313 ; 
+                +313 ;                 car     coreAllowAllKeys
+00F4A8 F25DC9   +313 ; ;     carL    coreAllowAllKeys
+                +313 ; 
+                +313 ; 
+                 314                 ;
+                 315                 CORE_MASK_KEYS  (MMSWITCHMASK_STOPRESET | MMSWITCHMASK_CW | MMSWITCHMASK_CCW)
+                +315 ; 
+00F4AB CED1FDF0 +315 ;                 ld      B, [COREKeyMask]
+00F4AF CEB0E5   +315 ;                 and     B, #@LOW(~((MMSWITCHMASK_STOPRESET | MMSWITCHMASK_CW | MMSWITCHMASK_CCW)))
+00F4B2 CED5FDF0 +315 ;                 ld      [COREKeyMask], B
+                +315 ; 
+                 316                 CORE_DISABLE_PULSE_MODE
+                +316 ; 
+                +316 ;                 car    coreDisablePulseMode
+00F4B6 F227C9   +316 ; ;     carL    coreDisablePulseMode
+                +316 ; 
+                +316 ; 
+                 317 
+00F4B9 F8        318                 ret
+                 319 
+00F4BA           320 mmdefaultstatesegmsg:
+00F4BA 191B0F05  321                 db        SEG_P, SEG_R, SEG_E, SEG_S, SEG_S, SEG_SPACE
+       050A         
+                 322 
+00F4C0           323 mmdefaultstatebannermsg:
+00F4C0 8C1D1E0B  324                 db        LCDBANNER_COL11, DM5_S, DM5_T, DM5_A, DM5_R, DM5_T
+       1C1E         
+00F4C6 945F      325                 db        LCDBANNER_COL19, DM5_DOWNARROW
+00F4C8 FF        326                 db        LCD_END_BANNER
+                 327 
+                 328 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 329 
+00F4C9           330 mmDefaultStateRandomGenerator:
+                 331                 CORE_GENERATE_RANDOM_NUMBER
+                +331 ; 
+                +331 ;                 car     coreRandom
+00F4C9 F230C7   +331 ; ;     carL    coreRandom
+                +331 ; 
+                +331 ; 
+00F4CC B300      332                 ld        H, #0
+00F4CE 50        333                 ld        L, A
+00F4CF CE4100    334                 ld        A, [IY + MMCHOICESOFFSET]
+00F4D2 CED9      335                 div
+00F4D4 43        336                 ld        A, H
+                 337 ;               inc       A
+00F4D5 020B      338                 add       A, #DM5_A
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   9
+
+ADDR   CODE      LINE SOURCELINE
+                 339 
+00F4D7 F8        340                 ret
+                 341 
+                 342 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 343 
+00F4D8           344 mmDefaultStateRedisplay:
+00F4D8 CE4101    345                 ld        A, [IY + MMROUNDOFFSET]
+00F4DB 0200      346                 add       A, #SEG_0
+00F4DD CED44AF5  347                 ld        [mmdefaultstateredisplayroundseg], A
+                 348 
+00F4E1 CE4102    349                 ld        A, [IY + MMCURRENTPOSITIONOFFSET]
+00F4E4 0200      350                 add       A, #DM5_0
+00F4E6 CED45CF5  351                 ld        [mmdefaultstateredisplayposition], A
+                 352 
+00F4EA CFEB      353                 ld        IX, IY
+00F4EC C20400    354                 add       IX, #MMBIGTABLEOFFSET
+                 355 
+                 356                 ; BA = [IY + MMCURRENTPOSITIONOFFSET] * 5
+00F4EF B100      357                 ld        B, #0
+00F4F1 CE4102    358                 ld        A, [IY + MMCURRENTPOSITIONOFFSET]
+00F4F4 CE84      359                 sll       A
+00F4F6 CE84      360                 sll       A
+00F4F8 CE0102    361                 add       A, [IY + MMCURRENTPOSITIONOFFSET]
+                 362 
+00F4FB CF40      363                 add       IX, BA
+                 364                 ; IX
+                 365 
+00F4FD CE4000    366                 ld        A, [IX + MMPOSITION1]
+00F500 CED45EF5  367                 ld        [mmdefaultstateredisplaypositions + MMPOSITION1], A
+00F504 CE4001    368                 ld        A, [IX + MMPOSITION2]
+00F507 CED45FF5  369                 ld        [mmdefaultstateredisplaypositions + MMPOSITION2], A
+00F50B CE4002    370                 ld        A, [IX + MMPOSITION3]
+00F50E CED460F5  371                 ld        [mmdefaultstateredisplaypositions + MMPOSITION3], A
+00F512 CE4003    372                 ld        A, [IX + MMPOSITION4]
+00F515 CED461F5  373                 ld        [mmdefaultstateredisplaypositions + MMPOSITION4], A
+                 374 
+                 375                 LCD_CLR_DISPLAY
+                +375 ;                 
+                +375 ;                 car     lcdClearDisplay
+00F519 F223B0   +375 ; ;     carL    lcdClearDisplay
+                +375 ; 
+                +375 ; 
+                 376                 ;
+00F51C CE5004    377                 ld        L, [IX + MMRESULT]
+                 378                 UTL_CONVERT_HEX_TO_2DIGIT_BCD
+                +378 ; 
+                +378 ;                 car     utlConvert1ByteHEXTo1ByteBCD
+00F51F F23F2C   +378 ; ;     carL    utlConvert1ByteHEXTo1ByteBCD
+                +378 ; 
+                +378 ; 
+00F522 C602F8    379                 ld        IX, #LCDUPPERDMCOL1
+                 380                 LCD_DISP_SMALL_FIXED_WIDTH_2DIG_DM_DATA_NO_ZERO_SUP
+                +380 ;                 
+                +380 ;                 car     lcdDispSmFntFixedWidthDMPairNoSup
+00F525 F2189C   +380 ; ;     carL    lcdDispSmFntFixedWidthDMPairNoSup
+                +380 ; 
+                +380 ; 
+                 381                 ;
+00F528 CE4101    382                 ld        A, [IY + MMROUNDOFFSET]
+00F52B C74BF5    383                 ld        IY, #mmdefaultstateredisplayline1
+00F52E 3209      384                 cp        A, #MMROUNDMAX
+                 385                 jr        NZ, mmdefaultstateredisplayhideit
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page  10
+
+ADDR   CODE      LINE SOURCELINE
+00F530 E704     +385 ;       jrS     NZ, mmdefaultstateredisplayhideit
+                 386 
+00F532 C752F5    387                 ld        IY, #mmdefaultstateredisplayline1b
+                 388 
+00F535           389 mmdefaultstateredisplayhideit:
+                 390                 LCD_DISP_FORMATTED_SMALL_FIXED_WIDTH_DM_MSG
+                +390 ;                 
+                +390 ;                 car     lcdDispFormattedSmFntFixedWidthDMMsg
+00F535 F27D9D   +390 ; ;     carL    lcdDispFormattedSmFntFixedWidthDMMsg
+                +390 ; 
+                +390 ; 
+                 391                 ;
+00F538 C745F5    392                 ld        IY, #mmdefaultstateredisplayseg
+                 393                 LCD_DISP_SEG_LINE_MSG
+                +393 ;                 
+                +393 ;                 car     lcdDispSegLineMsg
+00F53B F25EA7   +393 ; ;     carL    lcdDispSegLineMsg
+                +393 ; 
+                +393 ; 
+                 394                 ;
+00F53E C759F5    395                 ld        IY, #mmdefaultstateredisplayline2
+                 396                 LCD_DISP_FORMATTED_SMALL_FIXED_WIDTH_DM_MSG
+                +396 ;                 
+                +396 ;                 car     lcdDispFormattedSmFntFixedWidthDMMsg
+00F541 F2719D   +396 ; ;     carL    lcdDispFormattedSmFntFixedWidthDMMsg
+                +396 ; 
+                +396 ; 
+                 397 
+00F544 F8        398                 ret
+                 399 
+00F545           400 mmdefaultstateredisplayseg:
+00F545 1C1B2013  401                 db      SEG_T, SEG_R, SEG_Y, SEG_COLON, SEG_SPACE
+       0A           
+00F54A           402 mmdefaultstateredisplayroundseg:
+00F54A 00        403                 db      SEG_0
+                 404 
+00F54B           405 mmdefaultstateredisplayline1:
+00F54B 0EF9      406                 dw        LCDMAINDMLINE1COL13
+00F54D 04        407                 db        4
+00F54E           408 mmdefaultstateredisplayasterisk:
+00F54E 2E2E2E2E  409                 db        DM5_ASTERISK, DM5_ASTERISK, DM5_ASTERISK, DM5_ASTERISK
+                 410 
+00F552           411 mmdefaultstateredisplayline1b:
+00F552 0EF9      412                 dw        LCDMAINDMLINE1COL13
+00F554 04        413                 db        4
+00F555           414 mmdefaultstateredisplayshow:
+00F555 00010203  415                 db        DM5_0, DM5_1, DM5_2, DM5_3
+                 416 
+00F559           417 mmdefaultstateredisplayline2:
+00F559 02FA      418                 dw        LCDMAINDMLINE2COL1
+00F55B 07        419                 db        7
+00F55C           420 mmdefaultstateredisplayposition:
+00F55C 0066      421                 db        DM5_0, DM5_RIGHTARROW
+00F55E           422 mmdefaultstateredisplaypositions:
+00F55E 0B0C0D0E  423                 db        DM5_A, DM5_B, DM5_C, DM5_D, DM5_LEFTARROW
+       65           
+                 424 
+                 425 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 101 
+                 102      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 103      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 104 
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page  11
+
+ADDR   CODE      LINE SOURCELINE
+                 105 ;**END FILE STATE1.ASM
+
+Section summary:
+
+ NR ADDR   SIZE CYCLE NAME
+  1 00F35F 0204   621 .text

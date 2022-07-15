@@ -1,0 +1,100 @@
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   1
+C:\M851\app\MasterMi\build\state2.asm
+ADDR   CODE      LINE SOURCELINE
+                   2 
+                   3 ; ********************************************************************
+                   4 ; *
+                   5 ; * M851 WRISTAPP BUILDER
+                   6 ; * Timex Corporation 2002 All Rights Reserved
+                   7 ; * July 2002
+                   8 ; *
+                   9 ; * WristApp: MasterMind v: 1.0 (final)
+                  10 ; *
+                  11 ; ********************************************************************
+                  12 
+                  13 
+                  88 
+                  90 
+                  93 
+                  94      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  95      ;
+                  96      ; ADD WRISTAPP SOURCE FILE TO BE IN THE STATE CODE
+                  97      ;
+                  98      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  99 
+                 100     INCLUDE 'C:\M851\App\MasterMi\src\mmsetbn.asm'
+                   1 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                   2 ;
+                   3 ; File Name    : mmsetbn.asm
+                   4 ; Purpose      : MasterMind Application Set Banner State Manager
+                   5 ;
+                   6 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                   7 ;;;;;;;;;;;;;DO NOT MODIFY THE FOLLOWING SUBROUTINE DEFINITION;;;;;;;;;;;;;;;;;
+                   8 
+                  12                 DEFINE  SUBROUTINE      "'mmsetbn'"
+                  13 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  14 
+                  15 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  16 ;
+                  17 ; Module Name : mmSetBannerStateManager
+                  18 ; Description : MasterMind ASet Banner State Manager.
+                  19 ; Assumptions : Display is cleared on first time entry into the state.
+                  20 ; Input(s)    : CORECurrentEvent  - system event to be processed
+                  21 ; Output(s)   : None
+                  22 ;
+                  23 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  24 
+                  26 
+00F35F            27 mmSetBannerStateManager:
+                  28                 ; Get the event to be processed.
+00F35F CED002F1   29                 ld      A, [CORECurrentEvent]
+                  30 
+                  31                 ; Check if State Entry Event.
+00F363 3231       32                 cp      A, #MM_STATEENTRY
+                  33                 jr      NZ, utlSetBannerStateManager
+00F365 EFDB8A    +33 ;       jrL     NZ, utlSetBannerStateManager
+                  34 
+                  35                 ;**************************************************************
+                  36                 ;
+                  37                 ;                       STATE ENTRY
+                  38                 ;
+                  39                 ;**************************************************************
+                  40 
+00F368 C771F3     41                 ld        IY, #mmSetBannerMsg
+                  42                 LCD_DISP_BANNER_MSG
+                 +42 ;                 
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   2
+
+ADDR   CODE      LINE SOURCELINE
+                 +42 ;                 car     lcdDispBannerMsg
+00F36B F2739F    +42 ; ;     carL    lcdDispBannerMsg
+                 +42 ; 
+                 +42 ; 
+                  43 
+                  44                 jr        utlSetBannerStateManager
+00F36E F3D28A    +44 ;       jrL     utlSetBannerStateManager
+                  45 
+                  46 ;==============================================================================
+                  47 ;
+                  48 ;                THIS IS YOUR COSTUMIZED SET BANNER CREATED FROM WRISTAPP WIZARD
+                  49 ;
+                  50 ;==============================================================================
+                  51 
+00F371            52 mmSetBannerMsg:
+00F371 911717     53                 db        LCDBANNER_COL16, DM5_M, DM5_M
+00F374 861D0F1E   54                 db        LCDBANNER_COL5, DM5_S, DM5_E, DM5_T, DM5_T, DM5_I, DM5_N, DM5_G
+       1E131811     
+00F37C FF         55                 db        LCD_END_BANNER
+                  56 
+                 101 
+                 102      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 103      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 104 
+                 105 ;**END FILE STATE2.ASM
+
+Section summary:
+
+ NR ADDR   SIZE CYCLE NAME
+  1 00F35F 001e    21 .text

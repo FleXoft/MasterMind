@@ -1,0 +1,46 @@
+P r o c e s s   t a b l e
+=========================
+
+Pid #		Load_mod
+0000		common.out
+
+
+M a p   p e r   c l u s t e r
+=============================
+
+Cluster: rom
+Chips:	 i_rom, i_ram, dis_mem, io_mem
+
+Pid #	Section		Physical    Virtual     Size        Amode       Chip
+0000    <reserved>     	0x000026    0x000026    0x000002    (absolute)  i_rom       
+0000    .text          	0x00031a    0x00f31a    0x000045    (absolute)  i_ram       
+
+
+M A P   p e r   L O A D _ M O D
+===============================
+
+
+Load module common.out:
+Section        	Virtual     Size        Physical    
+.text          	0x00f31a    0x000045    0x00031a    
+ 
+Symbols:  Space SMC88_space
+                              Sorted on symbol                                 Sorted on address
+                              ----------------                                 -----------------
+                  CODECOMMONADDRESS - 0x00f31a                      CODECOMMONADDRESS - 0x00f31a
+                      CommonCodeEnd - 0x00f35f                    mmBackgroundHandler - 0x00f31a
+                mmBackgroundHandler - 0x00f31a                            mmBannerMsg - 0x00f33a
+                        mmBannerMsg - 0x00f33a     mmCommonRoundTableOffsetCalculator - 0x00f34b
+ mmCommonRoundTableOffsetCalculator - 0x00f34b                          CommonCodeEnd - 0x00f35f
+ 
+Symbols:  Space undefined
+                              Sorted on symbol                                 Sorted on address
+                              ----------------                                 -----------------
+                     CommonCodeSize - 0x000045                         CommonCodeSize - 0x000045
+
+
+Sections:
+
+common:
+Sectio   Virtual     Size        
+ .text - 0x00f31a    0x000045

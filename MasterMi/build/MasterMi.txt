@@ -1,0 +1,49 @@
+WristApp: MASTERMIND V: 1.0 (FINAL)
+================================================================================
+
+Description:
+------------
+
+  Master Mind game clone by Flex.
+
+ << wristapp overview >>
+
+
+Usage:
+------
+
+ Default State:
+ --------------
+
+ << default state overview >>
+
+  Switches:
+
+   MODE        - 
+   START/SPLIT - 
+   STOP/RESET  - 
+   CROWN-SET   - 
+
+
+ Set State:
+ ----------
+
+ << set  state overview >>
+
+  Switches:
+
+   MODE         - 
+   STOP/RESET   - 
+   CROWN-CW/CCW - 
+   CROWN-HOME   - 
+  
+
+Files:
+------
+
+ MASTERMI.APP             - application info
+ MASTERMI.TXT             - application description (this file)
+ MASTERMI_PAR_018.BIN     - application initialization parameter list
+ MASTERMI_CODE_018.BIN    - application code
+
+

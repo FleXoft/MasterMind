@@ -1,0 +1,151 @@
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   1
+C:\M851\app\MasterMi\build\common.asm
+ADDR   CODE      LINE SOURCELINE
+                   2 
+                   3 ; ********************************************************************
+                   4 ; *
+                   5 ; * M851 WRISTAPP BUILDER
+                   6 ; * Timex Corporation 2002 All Rights Reserved
+                   7 ; * July 2002
+                   8 ; *
+                   9 ; * WristApp: MasterMind v: 1.0 (final)
+                  10 ; *
+                  11 ; ********************************************************************
+                  12 
+                  13 
+                  86 
+                  89 
+00F31A            91 CODECOMMONADDRESS:
+                  92 
+                  93      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  94      ;
+                  95      ; WRISTAPP SOURCE FILES TO BE IN THE COMMON SECTION
+                  96      ; * Always have the Background Handler routine to be the first file
+                  97      ;
+                  98      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  99 
+                 100     INCLUDE 'C:\M851\App\MasterMi\src\mmbckhd.asm'
+                   1 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                   2 ;
+                   3 ; File Name     : mmbckhd.asm
+                   4 ; Purpose       : Handles the following application specific functions:
+                   5 ;                   - application initialization
+                   6 ;                   - resource refresh
+                   7 ;
+                   8 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                   9 ;;;;;;;;;;;;;DO NOT MODIFY THE FOLLOWING SUBROUTINE DEFINITION;;;;;;;;;;;;;;;;;
+                  10 
+                  14                 DEFINE  SUBROUTINE      "'mmbckhd'"
+                  15 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  16 
+                  17 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  18 ;
+                  19 ; Module Name : mmBackgroundHandler
+                  20 ; Description : Handles application initialization and refresh resource handlers.
+                  21 ; Assumptions : COREInitializationASDAddress is already set by kernel.
+                  22 ;               COREInitializationADDAddress is already set by kernel.
+                  23 ; Input(s)    : None
+                  24 ; Output(s)   : None
+                  25 ;               ( Destroyed: All registers )
+                  26 ;
+                  27 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  28 
+                  30 
+00F31A            31 mmBackgroundHandler:
+00F31A BB0CF1     32                 ld      IY, [COREInitializationASDAddress]
+                  33 
+                  34                 ; Load the event to be process to AReg.
+00F31D CED00AF1   35                 ld      A, [COREBackgroundEvent]
+                  36 
+                  37                 ; Check if INIT event.
+00F321 3202       38                 cp      A, #COREEVENT_INIT
+                  39                 jr      NZ, mmBackgroundProcessExit
+00F323 E715      +39 ;       jrS     NZ, mmBackgroundProcessExit
+                  40 
+00F325            41 mmBackgroundInitEvent:
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   2
+
+ADDR   CODE      LINE SOURCELINE
+                  42                 ;TODO: Initialize your variables here
+                  43 
+00F325 B004       44                 ld     A, #MMCHOICESINIT
+00F327 CE4500     45                 ld     [IY + MMCHOICESOFFSET], A
+                  46                 ;
+00F32A B000       47                 ld     A, #MMROUNDINIT
+00F32C CE4501     48                 ld     [IY + MMROUNDOFFSET], A
+                  49 
+                  50                 ; extras
+00F32F B001       51                 ld     A, #1
+00F331 CE453C     52                 ld     [IY + MMGAMENUMBER], A
+                  53 
+00F334 B000       54                 ld     A, #0
+00F336 CE453D     55                 ld     [IY + MMWGAMENUMBER], A
+                  56 
+00F339            57 mmBackgroundProcessExit:
+00F339 F8         58                 ret
+                  59 
+                 101     INCLUDE 'C:\M851\app\MasterMi\src\mmDisp.asm'
+                   1 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                   2 ;
+                   3 ; File Name :   mmDisp.asm
+                   4 ; Purpose   :   MasterMind Wrist App Common Display Routines
+                   5 ;
+                   6 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                   7 ;;;;;;;;;;;;;DO NOT MODIFY THE FOLLOWING SUBROUTINE DEFINITION;;;;;;;;;;;;;;;;;
+                   8 
+                  10                         UNDEF SUBROUTINE
+                  12                 DEFINE  SUBROUTINE      "'mmdisp'"
+                  13 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  14 
+                  15                 ;TODO: Add your own functionality display below or edit above display routines
+                  16 
+                  18 
+00F33A            19 mmBannerMsg:
+00F33A 822E170B   20                 db        LCDBANNER_COL1, DM5_ASTERISK, DM5_M, DM5_A, DM5_S, DM5_T, DM5_E, DM5_R, DM5_AS
+       1D1E0F1C     TERISK
+       2E           
+00F343 882E1713   21                 db        LCDBANNER_COL7, DM5_ASTERISK, DM5_M, DM5_I, DM5_N, DM5_D, DM5_ASTERISK
+       180E2E       
+00F34A FF         22                 db        LCD_END_BANNER
+                  23 
+                  24 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  25 
+                  26 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  27 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; SUBROUTINES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  28 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  29 
+                  31 
+00F34B            32 mmCommonRoundTableOffsetCalculator:
+00F34B CFEB       33                 ld        IX, IY
+00F34D C20400     34                 add       IX, #MMBIGTABLEOFFSET
+                  35 
+                  36                 ; BA = [IY + MMROUNDOFFSET] * 5
+00F350 B100       37                 ld        B, #0
+00F352 CE4101     38                 ld        A, [IY + MMROUNDOFFSET]
+00F355 CE84       39                 sll       A
+00F357 CE84       40                 sll       A
+00F359 CE0101     41                 add       A, [IY + MMROUNDOFFSET]
+                  42 
+00F35C CF40       43                 add       IX, BA
+                  44 
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   3
+
+ADDR   CODE      LINE SOURCELINE
+00F35E F8         45                 ret
+                  46 
+                 102 
+                 103     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 104     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 105 
+00F35F           107 CommonCodeEnd:
+                 108 
+                 111 
+                 112 ;**END FILE COMMON.ASM
+
+Section summary:
+
+ NR ADDR   SIZE CYCLE NAME
+  1 00F31A 0045    71 .text

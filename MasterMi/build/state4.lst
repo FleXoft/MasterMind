@@ -1,0 +1,629 @@
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   1
+C:\M851\app\MasterMi\build\state4.asm
+ADDR   CODE      LINE SOURCELINE
+                   2 
+                   3 ; ********************************************************************
+                   4 ; *
+                   5 ; * M851 WRISTAPP BUILDER
+                   6 ; * Timex Corporation 2002 All Rights Reserved
+                   7 ; * July 2002
+                   8 ; *
+                   9 ; * WristApp: MasterMind v: 1.0 (final)
+                  10 ; *
+                  11 ; ********************************************************************
+                  12 
+                  13 
+                  88 
+                  90 
+                  93 
+                  94      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  95      ;
+                  96      ; ADD WRISTAPP SOURCE FILE TO BE IN THE STATE CODE
+                  97      ;
+                  98      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  99 
+                 100     INCLUDE 'C:\M851\app\MasterMi\src\mmedit.asm'
+                   1 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                   2 ;
+                   3 ; File Name     : mmedit.asm
+                   4 ; Purpose       : Handles the following application specific functions:
+                   5 ;
+                   6 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                   7 ;;;;;;;;;;;;;DO NOT MODIFY THE FOLLOWING SUBROUTINE DEFINITION;;;;;;;;;;;;;;;;;
+                   8 
+                  12                 DEFINE  SUBROUTINE      "'mmedit'"
+                  13 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  14 
+                  15 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  16 ;
+                  17 ; Module Name : mmBackgroundHandler
+                  18 ; Description : Handles application initialization and refresh resource handlers.
+                  19 ; Assumptions : COREInitializationASDAddress is already set by kernel.
+                  20 ;               COREInitializationADDAddress is already set by kernel.
+                  21 ; Input(s)    : None
+                  22 ; Output(s)   : None
+                  23 ;               ( Destroyed: All registers )
+                  24 ;
+                  25 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  26 
+                  28 
+00F35F            29 mmEditStateManager:
+                  30                 ; Set IYReg the address of the MasterMind ASD.
+00F35F BB06F1     31                 ld      IY, [CORECurrentASDAddress]
+                  32 
+                  33                 ; Load the event to be process to AReg.
+00F362 CED002F1   34                 ld      A, [CORECurrentEvent]
+                  35 
+                  36                 ; Check if state entry event.
+00F366 3231       37                 cp      A, #MM_STATEENTRY
+                  38                 jr      Z, mmEditStateStateEntryEvent
+00F368 E61C      +38 ;       jrS     Z, mmEditStateStateEntryEvent
+                  39 
+                  40                 ; Check if mode depress event.
+00F36A 3206       41                 cp      A, #MM_MODEDEPRESS
+                  42                 jr      Z, mmEditStateModeDepressEvent
+00F36C E65B      +42 ;       jrS     Z, mmEditStateModeDepressEvent
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   2
+
+ADDR   CODE      LINE SOURCELINE
+                  43 
+                  44                 ; Check if crown set event.
+00F36E 3202       45                 cp      A, #MM_CROWNSET
+                  46                 jr      Z, mmEditStatePulledCrownEvent
+00F370 E65E      +46 ;       jrS     Z, mmEditStatePulledCrownEvent
+                  47 
+                  48                 ; Check if start/split depress event.
+00F372 3208       49                 cp      A, #MM_STARTSPLITDEPRESS
+                  50                 jr      Z, mmEditStateStartSplitDepressEvent
+00F374 E663      +50 ;       jrS     Z, mmEditStateStartSplitDepressEvent
+                  51 
+00F376 3210       52                 cp      A, #MM_CWPULSES
+                  53                 jr      Z, mmEditStateCWPulseEvent
+00F378 E671      +53 ;       jrS     Z, mmEditStateCWPulseEvent
+                  54 
+00F37A 3211       55                 cp      A, #MM_CCWPULSES
+                  56                 jr      Z, mmEditStateCCWPulseEvent
+00F37C EE8500    +56 ;       jrL     Z, mmEditStateCCWPulseEvent
+                  57 
+                  58                 ; Check if stop/reset depress event.
+00F37F 3207       59                 cp      A, #MM_STOPRESETDEPRESS
+                  60                 jr      Z, mmEditStateStopResetDepressEvent
+00F381 EE9500    +60 ;       jrL     Z, mmEditStateStopResetDepressEvent
+                  61 
+00F384 F8         62                 ret
+                  63 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  64 
+                  65 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  66 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; EVENT HANDLERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  67 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                  68 
+00F385            69 mmEditStateStateEntryEvent:
+                  70                 ;**************************************************************
+                  71                 ;         STATE ENTRY
+                  72                 ;**************************************************************
+                  73 
+                  74                 ; reset the cursor position
+00F385 B000       75                 ld        A, #MMCURSORPOSITIONINIT
+00F387 CE4503     76                 ld        [IY + MMCURSORPOSITIONOFFSET], A
+                  77 
+                  78                 ; next round
+00F38A CE4101     79                 ld        A, [IY + MMROUNDOFFSET]
+00F38D 80         80                 inc       A
+00F38E CE4501     81                 ld        [IY + MMROUNDOFFSET], A
+                  82 
+                  83                 car       mmCommonRoundTableOffsetCalculator
+00F391 F0B9      +83 ;       carS    mmCommonRoundTableOffsetCalculator
+                  84                 ; IX
+                  85 
+00F393 CE4101     86                 ld        A, [IY + MMROUNDOFFSET]
+00F396 3201       87                 cp        A, #MMROUNDFIRST
+                  88                 jr        NZ, mmeditstatestateentryeventnotfirst
+00F398 E711      +88 ;       jrS     NZ, mmeditstatestateentryeventnotfirst
+                  89 
+                  90                 ; reset the table
+00F39A B00B       91                 ld        A, #DM5_A
+00F39C CE4400     92                 ld        [IX + MMPOSITION1], A
+00F39F CE4401     93                 ld        [IX + MMPOSITION2], A
+00F3A2 CE4402     94                 ld        [IX + MMPOSITION3], A
+00F3A5 CE4403     95                 ld        [IX + MMPOSITION4], A
+                  96 ;                ld        [IX + 4], A               ; #Result
+                  97 
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   3
+
+ADDR   CODE      LINE SOURCELINE
+                  98                  jr        mmeditstatestateentryeventcontinue
+00F3A8 F119      +98 ;       jrS     mmeditstatestateentryeventcontinue
+                  99 
+00F3AA           100 mmeditstatestateentryeventnotfirst:
+00F3AA CE40FB    101                 ld        A, [IX - 5]
+00F3AD CE4400    102                 ld        [IX + MMPOSITION1], A
+00F3B0 CE40FC    103                 ld        A, [IX - 4]
+00F3B3 CE4401    104                 ld        [IX + MMPOSITION2], A
+00F3B6 CE40FD    105                 ld        A, [IX - 3]
+00F3B9 CE4402    106                 ld        [IX + MMPOSITION3], A
+00F3BC CE40FE    107                 ld        A, [IX - 2]
+00F3BF CE4403    108                 ld        [IX + MMPOSITION4], A
+                 109 
+00F3C2           110 mmeditstatestateentryeventcontinue:
+                 111                 car       mmEditStateRedisplay
+00F3C2 F064     +111 ;       carS    mmEditStateRedisplay
+                 112 
+                 113                 ; Enable pulse mode to change values.
+                 114                 CORE_ENABLE_PULSE_MODE
+                +114 ; 
+                +114 ;                 car    coreEnablePulseMode
+00F3C4 F212CA   +114 ; ;     carL    coreEnablePulseMode
+                +114 ; 
+                +114 ; 
+                 115 
+00F3C7 F8        116                 ret
+                 117 
+00F3C8           118 mmEditStateModeDepressEvent:
+                 119                 ;**************************************************************
+                 120                 ;         MODE DEPRESS
+                 121                 ;**************************************************************
+                 122 
+                 123                 ; check the result before you leave
+                 124                 car     mmEditStateCheckResult
+00F3C8 F2EB00   +124 ;       carL    mmEditStateCheckResult
+                 125 
+                 126                 CORE_REQ_MODE_CHANGE_NEXT
+                +126 ;                 
+                +126 ;                 car     coreRequestModeChangeNext
+00F3CB F211C9   +126 ; ;     carL    coreRequestModeChangeNext
+                +126 ;         
+                +126 ; 
+                 127 
+00F3CE F8        128                 ret
+                 129 
+00F3CF           130 mmEditStatePulledCrownEvent:
+                 131                 ;**************************************************************
+                 132                 ;         CROWN SET
+                 133                 ;**************************************************************
+                 134 
+                 135                 ; check the result before you leave
+                 136                 car     mmEditStateCheckResult
+00F3CF F2E400   +136 ;       carL    mmEditStateCheckResult
+                 137 
+00F3D2 B102      138                 ld      B, #MMSETBANNERSTATE
+                 139                 CORE_REQ_STATE_CHANGE
+                +139 ;                 
+                +139 ;                 car     coreRequestStateChange
+00F3D4 F216C9   +139 ; ;     carL    coreRequestStateChange
+                +139 ;         
+                +139 ; 
+                 140 
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   4
+
+ADDR   CODE      LINE SOURCELINE
+00F3D7 F8        141                 ret
+                 142 
+00F3D8           143 mmEditStateStartSplitDepressEvent:
+                 144                 ;**************************************************************
+                 145                 ;         START/SPLIT DEPRESS
+                 146                 ;**************************************************************
+                 147 
+00F3D8 CE4103    148                 ld        A, [IY + MMCURSORPOSITIONOFFSET]
+00F3DB 3203      149                 cp        A, #MMCURSORPOSITIONMAX
+                 150                 jr        Z, mmeditstatestartsplitdepressmaxcursorposition
+00F3DD E604     +150 ;       jrS     Z, mmeditstatestartsplitdepressmaxcursorposition
+                 151 
+00F3DF 80        152                 inc       A
+                 153 
+                 154                 jr        mmeditstatestartsplitdepresssetcursorposition
+00F3E0 F103     +154 ;       jrS     mmeditstatestartsplitdepresssetcursorposition
+                 155 
+00F3E2           156 mmeditstatestartsplitdepressmaxcursorposition:
+00F3E2 B000      157                 ld        A, #MMCURSORPOSITIONMIN
+                 158 
+00F3E4           159 mmeditstatestartsplitdepresssetcursorposition:
+00F3E4 CE4503    160                 ld        [IY + MMCURSORPOSITIONOFFSET], A
+                 161 
+                 162                 car       mmEditStateRedisplay
+00F3E7 F03F     +162 ;       carS    mmEditStateRedisplay
+                 163 
+00F3E9 F8        164                 ret
+                 165 
+00F3EA           166 mmEditStateCWPulseEvent:
+                 167                 ;**************************************************************
+                 168                 ;         CLOCKWISE CROWN ROTATION
+                 169                 ;**************************************************************
+                 170 
+                 171                 car       mmCommonRoundTableOffsetCalculator
+00F3EA F25FFF   +171 ;       carL    mmCommonRoundTableOffsetCalculator
+                 172                 ; IX
+00F3ED CE4103    173                 ld        A, [IY + MMCURSORPOSITIONOFFSET]
+00F3F0 B100      174                 ld        B, #0
+00F3F2 CF40      175                 add       IX, BA
+                 176 
+00F3F4 CE4100    177                 ld        A, [IY + MMCHOICESOFFSET]
+00F3F7 020A      178                 add       A, #DM5_A - 1
+00F3F9 48        179                 ld        B, A
+                 180 
+00F3FA 46        181                 ld        A, [IX]
+                 182 
+00F3FB 31        183                 cp        A, B
+                 184                 jr        Z, mmeditstatecwpulsemax
+00F3FC E605     +184 ;       jrS     Z, mmeditstatecwpulsemax
+                 185 
+00F3FE 80        186                 inc       A
+                 187                 ;
+00F3FF 60        188                 ld        [IX], A
+                 189 
+                 190                 car       mmEditStateRedisplay
+00F400 F026     +190 ;       carS    mmEditStateRedisplay
+                 191 
+00F402           192 mmeditstatecwpulsemax:
+00F402 F8        193                 ret
+                 194 
+00F403           195 mmEditStateCCWPulseEvent:
+                 196                 ;**************************************************************
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   5
+
+ADDR   CODE      LINE SOURCELINE
+                 197                 ;         COUNTER CLOCKWISE CROWN ROTATION
+                 198                 ;**************************************************************
+                 199 
+                 200                 car       mmCommonRoundTableOffsetCalculator
+00F403 F246FF   +200 ;       carL    mmCommonRoundTableOffsetCalculator
+                 201                 ; IX
+00F406 CE4103    202                 ld        A, [IY + MMCURSORPOSITIONOFFSET]
+00F409 B100      203                 ld        B, #0
+00F40B CF40      204                 add       IX, BA
+                 205 
+00F40D 46        206                 ld        A, [IX]
+                 207 
+00F40E B10B      208                 ld        B, #DM5_A
+                 209 
+00F410 31        210                 cp        A, B
+                 211                 jr        Z, mmeditstateccwpulsemin
+00F411 E605     +211 ;       jrS     Z, mmeditstateccwpulsemin
+                 212 
+00F413 88        213                 dec       A
+00F414 60        214                 ld        [IX], A
+                 215 
+                 216                 car       mmEditStateRedisplay
+00F415 F011     +216 ;       carS    mmEditStateRedisplay
+                 217 
+00F417           218 mmeditstateccwpulsemin:
+00F417 F8        219                 ret
+                 220 
+00F418           221 mmEditStateStopResetDepressEvent:
+                 222                 ;**************************************************************
+                 223                 ;         STOP/RESET DEPRESS
+                 224                 ;**************************************************************
+                 225 
+                 226                 ; jump to the current row to show
+00F418 CE4101    227                 ld        A, [IY + MMROUNDOFFSET]
+00F41B CE4502    228                 ld        [IY + MMCURRENTPOSITIONOFFSET], A
+                 229 
+                 230                 ; check the result
+                 231                 car       mmEditStateCheckResult
+00F41E F29500   +231 ;       carL    mmEditStateCheckResult
+                 232 
+                 233                 ; and go back
+00F421 B101      234                 ld      B, #MMDEFAULTSTATE
+                 235                 CORE_REQ_STATE_CHANGE
+                +235 ;                 
+                +235 ;                 car     coreRequestStateChange
+00F423 F2C7C8   +235 ; ;     carL    coreRequestStateChange
+                +235 ;         
+                +235 ; 
+                 236 
+00F426 F8        237                 ret
+                 238 
+                 239 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 240 
+                 241 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 242 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; SUBROUTINES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 243 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 244 
+00F427           245 mmEditStateRedisplay:
+                 246 ; debug
+                 247 ;                push iy
+                 248 ;                add       IY, #MMBIGTABLEOFFSET
+                 249 ;                ld        A, [IY+0]
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   6
+
+ADDR   CODE      LINE SOURCELINE
+                 250 ;                ld        [mmdeb+0], A
+                 251 ;                ld        A, [IY+1]
+                 252 ;                ld        [mmdeb+1], A
+                 253 ;                ld        A, [IY+2]
+                 254 ;                ld        [mmdeb+2], A
+                 255 ;                ld        A, [IY+3]
+                 256 ;                ld        [mmdeb+3], A
+                 257 ;                pop iy
+                 258 
+                 259                 car       mmCommonRoundTableOffsetCalculator
+00F427 F222FF   +259 ;       carL    mmCommonRoundTableOffsetCalculator
+                 260                 ; IX
+                 261 
+                 262                 ; round
+00F42A CE4101    263                 ld        A, [IY + MMROUNDOFFSET]
+00F42D 0200      264                 add       A, #SEG_0
+00F42F CED479F4  265                 ld        [mmeditstateredisplayroundseg], A
+                 266 
+                 267                 ;
+00F433 CE4000    268                 ld        A, [IX + MMPOSITION1]
+00F436 CED486F4  269                 ld        [mmeditstateredisplayposotions + MMPOSITION1], A
+00F43A CE4001    270                 ld        A, [IX + MMPOSITION2]
+00F43D CED487F4  271                 ld        [mmeditstateredisplayposotions + MMPOSITION2], A
+00F441 CE4002    272                 ld        A, [IX + MMPOSITION3]
+00F444 CED488F4  273                 ld        [mmeditstateredisplayposotions + MMPOSITION3], A
+00F448 CE4003    274                 ld        A, [IX + MMPOSITION4]
+00F44B CED489F4  275                 ld        [mmeditstateredisplayposotions + MMPOSITION4], A
+                 276 
+                 277                 LCD_CLR_DISPLAY
+                +277 ;                 
+                +277 ;                 car     lcdClearDisplay
+00F44F F2EDB0   +277 ; ;     carL    lcdClearDisplay
+                +277 ; 
+                +277 ; 
+                 278                 ;
+00F452 C774F4    279                 ld        IY, #mmeditstateredisplayseg
+                 280                 LCD_DISP_SEG_LINE_MSG
+                +280 ;                 
+                +280 ;                 car     lcdDispSegLineMsg
+00F455 F244A8   +280 ; ;     carL    lcdDispSegLineMsg
+                +280 ; 
+                +280 ; 
+                 281                 ;
+00F458 C77AF4    282                 ld        IY, #mmeditstateredisplayline1
+                 283                 LCD_DISP_FORMATTED_SMALL_FIXED_WIDTH_DM_MSG
+                +283 ;                 
+                +283 ;                 car     lcdDispFormattedSmFntFixedWidthDMMsg
+00F45B F2579E   +283 ; ;     carL    lcdDispFormattedSmFntFixedWidthDMMsg
+                +283 ; 
+                +283 ; 
+                 284                 ;
+00F45E C781F4    285                 ld        IY, #mmeditstateredisplayline2
+                 286                 LCD_DISP_FORMATTED_SMALL_FIXED_WIDTH_DM_MSG
+                +286 ;                 
+                +286 ;                 car     lcdDispFormattedSmFntFixedWidthDMMsg
+00F461 F2519E   +286 ; ;     carL    lcdDispFormattedSmFntFixedWidthDMMsg
+                +286 ; 
+                +286 ; 
+                 287 
+                 288                 LCD_WRITE_4HZ_GEN_BLINK_DISP_ROUTINE_ADDR   mmEditStateBlinkDisplay
+                +288 ;                 
+00F464 C48BF4   +288 ;                 ld      BA, #mmEditStateBlinkDisplay
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   7
+
+ADDR   CODE      LINE SOURCELINE
+00F467 BC3AFB   +288 ;                 ld      [LCDGen4HzBlinkRsrc+LCDGEN4HZBLINKWRITEROUTINEOFFSET],   BA 
+                +288 ; 
+                 289                 LCD_WRITE_4HZ_GEN_BLINK_CLR_ROUTINE_ADDR    mmEditStateBlinkClear
+                +289 ;                 
+00F46A C49BF4   +289 ;                 ld      BA, #mmEditStateBlinkClear
+00F46D BC3CFB   +289 ;                 ld      [LCDGen4HzBlinkRsrc+LCDGEN4HZBLINKCLEARROUTINEOFFSET],   BA 
+                +289 ; 
+                 290                 ;
+                 291                 CORE_REQ_BLINK_4HZ
+                +291 ;                 
+                +291 ;                 ; Set the core request flags in order to enable 2Hz blinking
+                +291 ;                 car     coreRequest4HzBlinking
+00F470 F2D0C8   +291 ; ;     carL    coreRequest4HzBlinking
+                +291 ; 
+                +291 ; 
+                 292 
+00F473 F8        293                 ret
+                 294 
+00F474           295 mmeditstateredisplayseg:
+00F474 1C1B2013  296                 db      SEG_T, SEG_R, SEG_Y, SEG_COLON, SEG_SPACE
+       0A           
+00F479           297 mmeditstateredisplayroundseg:
+00F479 00        298                 db      SEG_0
+                 299 
+00F47A           300 mmeditstateredisplayline1:
+00F47A 0EF9      301                 dw        LCDMAINDMLINE1COL13
+00F47C 04        302                 db        4
+00F47D           303 mmdeb:
+00F47D 2E2E2E2E  304                 db        DM5_ASTERISK, DM5_ASTERISK, DM5_ASTERISK, DM5_ASTERISK
+                 305 
+00F481           306 mmeditstateredisplayline2:
+00F481 02FA      307                 dw        LCDMAINDMLINE2COL1
+00F483 07        308                 db        7
+00F484 0A66      309                 db        DM5_SPACE, DM5_RIGHTARROW
+00F486           310 mmeditstateredisplayposotions:
+00F486 0B0C0D0E  311                 db        DM5_A, DM5_B, DM5_C, DM5_D, DM5_LEFTARROW
+       65           
+                 312 
+00F48B           313 mmEditStateBlinkDisplay:
+00F48B BB06F1    314                 ld       IY, [CORECurrentASDAddress]
+                 315 
+                 316                 car      mmCommonRoundTableOffsetCalculator
+00F48E F2BBFE   +316 ;       carL    mmCommonRoundTableOffsetCalculator
+                 317                 ; IX
+00F491 CE4103    318                 ld        A, [IY + MMCURSORPOSITIONOFFSET]
+00F494 B100      319                 ld        B, #0
+00F496 CF40      320                 add       IX, BA
+                 321 
+00F498 56        322                 ld        L, [IX]
+                 323 
+                 324                 jr        mmEditStateBlinkCommon
+00F499 F109     +324 ;       jrS     mmEditStateBlinkCommon
+                 325 
+00F49B           326 mmEditStateBlinkClear:
+00F49B BB06F1    327                 ld       IY, [CORECurrentASDAddress]
+                 328 
+00F49E CE4103    329                 ld        A, [IY + MMCURSORPOSITIONOFFSET]
+                 330 
+00F4A1 B20A      331                 ld        L, #DM5_SPACE
+                 332 
+00F4A3           333 mmEditStateBlinkCommon:
+00F4A3 48        334                 ld        B, A
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   8
+
+ADDR   CODE      LINE SOURCELINE
+00F4A4 CE84      335                 sll       A
+00F4A6 CE84      336                 sll       A
+00F4A8 01        337                 add       A, B
+00F4A9 01        338                 add       A, B
+00F4AA B100      339                 ld        B, #0
+                 340 
+00F4AC C60EFA    341                 ld        IX, #LCDMAINDMLINE2COL13
+00F4AF CF40      342                 add       IX, BA
+                 343                 LCD_DISP_SMALL_FIXED_WIDTH_DM_CHAR
+                +343 ;                 
+                +343 ;                 car     lcdDispSmFntFixedWidthDMChar
+00F4B1 F2E29C   +343 ; ;     carL    lcdDispSmFntFixedWidthDMChar
+                +343 ; 
+                +343 ; 
+                 344 
+00F4B4 F8        345                 ret
+                 346 
+00F4B5           347 mmEditStateCheckResult:
+                 348                 ; check the result and set the result field
+                 349 
+                 350                 ; move the hidden (#0) line to tmp buffer
+00F4B5 C509F5    351                 ld        HL, #MMEDITTMPBUFFER
+00F4B8 CE6104    352                 ld        [HL], [IY + MMBIGTABLEOFFSET + MMPOSITION1]
+                 353                 ;
+00F4BB 91        354                 inc       HL
+00F4BC CE6105    355                 ld        [HL], [IY + MMBIGTABLEOFFSET + MMPOSITION2]
+                 356                 ;
+00F4BF 91        357                 inc       HL
+00F4C0 CE6106    358                 ld        [HL], [IY + MMBIGTABLEOFFSET + MMPOSITION3]
+                 359                 ;
+00F4C3 91        360                 inc       HL
+00F4C4 CE6107    361                 ld        [HL], [IY + MMBIGTABLEOFFSET + MMPOSITION4]
+                 362 
+00F4C7 C509F5    363                 ld        HL, #MMEDITTMPBUFFER
+                 364                 ;
+                 365                 car       mmCommonRoundTableOffsetCalculator
+00F4CA F27FFE   +365 ;       carL    mmCommonRoundTableOffsetCalculator
+                 366                 ; IX
+                 367                 ;
+00F4CD B100      368                 ld        B, #0
+                 369 
+                 370                 ; check the place
+00F4CF A1        371                 push      HL
+00F4D0 A2        372                 push      IX
+                 373 
+00F4D1 B003      374                 ld        A, #3
+                 375 
+00F4D3           376 mmeditstatecheckresultplaceloop:
+00F4D3 CE36      377                 cp        [HL], [IX]
+                 378                 jr        NZ, mmeditstatecheckresultnotinplace
+00F4D5 E702     +378 ;       jrS     NZ, mmeditstatecheckresultnotinplace
+                 379 
+00F4D7 81        380                 inc       B
+                 381 
+00F4D8           382 mmeditstatecheckresultnotinplace:
+00F4D8 88        383                 dec      A
+00F4D9 3200      384                 cp       A, #0
+                 385                 jr       LT, mmeditstatecheckresultplaceexit
+00F4DB CEE005   +385 ;       jrS     LT, mmeditstatecheckresultplaceexit
+                 386 
+00F4DE 91        387                 inc      HL
+00F4DF 92        388                 inc      IX
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page   9
+
+ADDR   CODE      LINE SOURCELINE
+                 389                 jr       mmeditstatecheckresultplaceloop
+00F4E0 F1F2     +389 ;       jrS     mmeditstatecheckresultplaceloop
+                 390 
+00F4E2           391 mmeditstatecheckresultplaceexit:
+00F4E2 AA        392                 pop       IX
+00F4E3 A9        393                 pop       HL
+                 394 
+00F4E4 CEBC04    395                 cp        B, #4
+                 396                 jr        NZ, mmeditstatecheckresultnotyetwon
+00F4E7 E708     +396 ;       jrS     NZ, mmeditstatecheckresultnotyetwon
+                 397                 
+                 398                 ; increase the won game counter
+00F4E9 CE413D    399                 ld     A, [IY + MMWGAMENUMBER]
+00F4EC 80        400                 inc    A
+00F4ED CE453D    401                 ld     [IY + MMWGAMENUMBER], A
+                 402 
+00F4F0           403 mmeditstatecheckresultnotyetwon:
+                 404                 ; Prepare the result itself
+                 405                 ; B = B * 10
+00F4F0 CE85      406                 sll       B
+00F4F2 41        407                 ld        A, B
+00F4F3 CE85      408                 sll       B
+00F4F5 CE85      409                 sll       B
+00F4F7 01        410                 add       A, B
+00F4F8 48        411                 ld        B, A
+                 412 
+                 413                 ; check the "color"
+                 414 
+                 415                 ; save HL for backup
+00F4F9 CFED      416                 ld        IY, HL
+                 417 
+                 418                 car       mmEditStateColorChecker
+00F4FB F011     +418 ;       carS    mmEditStateColorChecker
+                 419                 ;
+00F4FD 92        420                 inc       IX
+                 421                 car       mmEditStateColorChecker
+00F4FE F00E     +421 ;       carS    mmEditStateColorChecker
+                 422                 ;
+00F500 92        423                 inc       IX
+                 424                 car       mmEditStateColorChecker
+00F501 F00B     +424 ;       carS    mmEditStateColorChecker
+                 425                 ;
+00F503 92        426                 inc       IX
+                 427                 car       mmEditStateColorChecker
+00F504 F008     +427 ;       carS    mmEditStateColorChecker
+                 428 
+                 429                 ; store result
+00F506 92        430                 inc       IX
+00F507 61        431                 ld        [IX], B
+                 432 
+00F508 F8        433                 ret
+                 434 
+00F509           435 MMEDITTMPBUFFER:
+00F509 00000000  436                 db        0, 0, 0, 0
+                 437 
+00F50D           438 mmEditStateColorChecker:
+                 439                 ; restore HL first
+00F50D CFE7      440                 ld        HL, IY
+00F50F B003      441                 ld        A, #3
+                 442 
+00F511           443 mmeditstatecolorloop:
+00F511 CE36      444                 cp        [HL], [IX]
+E0C88 assembler v1.2 r3                 SN00000000-061 (c) 2000 TASKING, Inc.
+                                                                                                                            Page  10
+
+ADDR   CODE      LINE SOURCELINE
+                 445                 jr        NZ, mmeditstatecolornotthesame
+00F513 E705     +445 ;       jrS     NZ, mmeditstatecolornotthesame
+                 446 
+00F515 81        447                 inc       B
+                 448 
+00F516 B50A      449                 ld        [HL], #DM5_SPACE              ; erase pattern in the tmpbuffer
+00F518 F8        450                 ret                                     ; and 'ret' right now >>>>>>>>>>>>>
+                 451 
+00F519           452 mmeditstatecolornotthesame:
+00F519 88        453                 dec      A
+00F51A 3200      454                 cp       A, #0
+                 455                 jr       LT, mmeditstatecolorexit
+00F51C CEE004   +455 ;       jrS     LT, mmeditstatecolorexit
+                 456 
+00F51F 91        457                 inc      HL
+                 458                 jr       mmeditstatecolorloop
+00F520 F1F0     +458 ;       jrS     mmeditstatecolorloop
+                 459 
+00F522           460 mmeditstatecolorexit:
+00F522 F8        461                 ret
+                 462 
+                 101 
+                 102      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 103      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 104 
+                 105 ;**END FILE STATE4.ASM
+
+Section summary:
+
+ NR ADDR   SIZE CYCLE NAME
+  1 00F35F 01c4   632 .text
